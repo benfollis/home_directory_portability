@@ -1,0 +1,26 @@
+// ZONE B: TRANSIENT (Ignore)
+(?i).cache
+.local/share/Trash
+.thumbnails
+node_modules
+**/target
+**/build
+.git/objects/pack
+.git/index.lock
+
+// ZONE C: STRICT IGNORE (Machine-Specific)
+.config/monitors.xml
+.config/pulse
+.config/dconf/user
+.config/google-chrome
+.config/chromium
+.Xauthority
+.ICEauthority
+.nvidia-settings-rc
+.local/share/xorg
+
+// HIGH CHURN / LOCK FILES
+*.log
+*.swp
+*.lock
+.DS_Store

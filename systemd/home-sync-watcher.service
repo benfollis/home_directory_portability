@@ -1,0 +1,11 @@
+[Unit]
+Description=Home Sync Connectivity Watcher
+After=network.target
+
+[Service]
+ExecStart=%h/scripts/home-sync-watcher.sh
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=default.target
