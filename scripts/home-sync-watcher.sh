@@ -1,13 +1,15 @@
 #!/bin/bash
 # home-sync-watcher.sh - Connectivity monitor for Syncthing
 
-AOP_IP="10.0.0.1"
-INTERFACE="wg0"
+AOP_IP="${AOP_IP:-10.0.0.1}"
+INTERFACE="${INTERFACE:-wg0}"
 
 check_connectivity() {
-    # 1. Check if interface exists and is up
-    if ! ip addr show "$INTERFACE" > /dev/null 2>&1; then
-        return 1
+    # 1. Check if interface exists and is up (if configured)
+    if [ -n "$INTERFACE" ] && [ "$INTERFACE" != "none" ] && [ "$INTERFACE" != "any" ]; then
+        if ! ip addr show "$INTERFACE" > /dev/null 2>&1; then
+            return 1
+        fi
     fi
 
     # 2. Check if AOP is reachable

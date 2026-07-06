@@ -3,6 +3,7 @@ Description=Home Sync Connectivity Watcher
 After=network.target
 
 [Service]
+EnvironmentFile=-%h/.config/home-sync/watcher.env
 ExecStart=%h/scripts/home-sync-watcher.sh
 Restart=always
 RestartSec=10

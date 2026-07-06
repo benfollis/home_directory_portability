@@ -5,6 +5,7 @@ set -e
 
 # Configuration
 SYNC_DIR="${SYNC_DIR:-/var/lib/home-sync}"
+GUI_ADDRESS="${GUI_ADDRESS:-127.0.0.1:8384}"
 
 echo "Starting AOP Setup..."
 
@@ -17,30 +18,43 @@ echo "Creating data directory at $SYNC_DIR..."
 sudo mkdir -p "$SYNC_DIR"
 sudo chown -R "$(whoami):$(whoami)" "$SYNC_DIR"
 
-# 3. Enable Syncthing Systemd User Service
-# Syncthing provides a default user service in Debian
-systemctl --user enable syncthing.service
-systemctl --user start syncthing.service
+# 3. Generate Syncthing Configuration
+echo "Generating Syncthing configuration..."
+syncthing generate
 
-echo "Waiting for Syncthing to generate configuration..."
-sleep 5
-
-# Stop Syncthing temporarily to edit configuration safely
-echo "Stopping Syncthing to configure data directory..."
-systemctl --user stop syncthing.service
-
-# Configure Syncthing to use the custom sync directory
-echo "Configuring Syncthing data directory..."
+# Configure Syncthing to use the custom sync directory and GUI address
+echo "Configuring Syncthing data directory and GUI..."
 python3 -c "
 import xml.etree.ElementTree as ET
 import os
 import sys
 
-config_path = os.path.expanduser('~/.config/syncthing/config.xml')
 sync_dir = sys.argv[1]
+gui_address = sys.argv[2]
 
-if not os.path.exists(config_path):
-    print(f'Config not found at {config_path}', file=sys.stderr)
+possible_paths = [
+    os.path.expanduser('~/.config/syncthing/config.xml'),
+    os.path.expanduser('~/.local/state/syncthing/config.xml')
+]
+
+# Fallback recursive search if not found in standard locations
+if not any(os.path.exists(p) for p in possible_paths):
+    for root_dir in ['~/.config', '~/.local', '~/']:
+        expanded = os.path.expanduser(root_dir)
+        if os.path.exists(expanded):
+            for root, dirs, files in os.walk(expanded):
+                if 'config.xml' in files and 'syncthing' in root.lower():
+                    possible_paths.append(os.path.join(root, 'config.xml'))
+
+config_path = None
+for path in possible_paths:
+    if os.path.exists(path):
+        config_path = path
+        break
+
+if not config_path:
+    print(f'Config file not found in expected locations: {possible_paths}', file=sys.stderr)
+    print('Please check if the syncthing generate command ran successfully.', file=sys.stderr)
     sys.exit(1)
 
 tree = ET.parse(config_path)
@@ -65,11 +79,29 @@ for folder in root.findall('folder'):
         if path is not None:
             path.text = os.path.join(sync_dir, 'Sync')
 
-tree.write(config_path)
-" "$SYNC_DIR"
+gui = root.find('gui')
+if gui is not None:
+    address = gui.find('address')
+    if address is not None:
+        address.text = gui_address
+    else:
+        address = ET.SubElement(gui, 'address')
+        address.text = gui_address
 
-# Restart Syncthing with the updated configuration
-systemctl --user start syncthing.service
+tree.write(config_path)
+" "$SYNC_DIR" "$GUI_ADDRESS"
+
+# 4. Enable and Start Syncthing Systemd User Service
+# Ensure user manager is running by enabling linger
+if command -v loginctl >/dev/null 2>&1; then
+    echo "Enabling user linger to ensure services persist..."
+    sudo loginctl enable-linger "$(whoami)" || true
+fi
+
+export XDG_RUNTIME_DIR="/run/user/$(id -u)"
+systemctl --user daemon-reload || true
+systemctl --user enable syncthing.service
+systemctl --user restart syncthing.service
 
 # 4. Get Device ID
 DEVICE_ID=$(syncthing --device-id)

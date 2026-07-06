@@ -54,6 +54,7 @@ bash scripts/join-cluster.sh
 
 ### 3. Connect Devices
 1. Access the Syncthing Web UI at `http://localhost:8384` on your client.
+   - *Note*: If the GUI does not load, the `home-sync-watcher` service might have stopped Syncthing because the VPN tunnel is down or unreachable. Run `systemctl --user stop home-sync-watcher.service` followed by `systemctl --user start syncthing.service` to access the GUI for initial configuration.
 2. Add the Always-On Peer's Device ID.
 3. Accept the connection and folder sharing request on the AOP's Web UI.
 
@@ -77,3 +78,16 @@ If you need to manually manage the services:
 systemctl --user start syncthing.service
 systemctl --user stop syncthing.service
 ```
+
+### LAN-Only Setup (No VPN)
+If you want to sync directly over your Local Area Network (LAN) instead of a Wireguard VPN:
+1. Create a config file at `~/.config/home-sync/watcher.env` on your client:
+   ```env
+   AOP_IP=your-server-lan-ip
+   INTERFACE=none
+   ```
+2. Reload and restart the watcher service:
+   ```bash
+   systemctl --user daemon-reload
+   systemctl --user restart home-sync-watcher.service
+   ```
