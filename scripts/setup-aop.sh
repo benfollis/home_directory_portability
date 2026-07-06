@@ -75,9 +75,12 @@ else:
 
 for folder in root.findall('folder'):
     if folder.get('id') == 'default':
-        path = folder.find('path')
-        if path is not None:
-            path.text = os.path.join(sync_dir, 'Sync')
+        target_folder_path = os.path.join(sync_dir, 'Sync')
+        if 'path' in folder.attrib:
+            folder.set('path', target_folder_path)
+        path_el = folder.find('path')
+        if path_el is not None:
+            path_el.text = target_folder_path
 
 gui = root.find('gui')
 if gui is not None:
