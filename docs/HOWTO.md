@@ -10,9 +10,13 @@ This guide explains how to set up the `home-sync` system across your Always-On P
 ## 2. Server Setup (Always-On Peer)
 1. Copy `scripts/setup-aop.sh` to your server.
 2. Run it as your local user: `bash setup-aop.sh`.
+   - By default, it will store synced data in `/var/lib/home-sync`.
+   - You can customize the storage directory by running: `SYNC_DIR=/path/to/dir bash setup-aop.sh`.
 3. The script will:
    - Install Syncthing.
+   - Create the storage directory (prompting for `sudo` to set up `/var/lib/home-sync` if needed).
    - Configure a systemd user service for Syncthing.
+   - Update Syncthing's configuration to use the designated storage directory instead of the user's home directory.
    - Generate your Syncthing Device ID.
 4. **Manual Step**: Note the Device ID printed at the end of the script. You will need this for the clients.
 

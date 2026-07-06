@@ -1,7 +1,8 @@
-## ADDED Requirements
-
+## Purpose
+Define the core requirements for the bidirectional synchronization of the user home directory between local machines and the Always-On Peer (AOP).
+## Requirements
 ### Requirement: Bidirectional Synchronization
-The system SHALL maintain a bidirectional mirror of the user's home directory between the local machine and the Always-On Peer (AOP).
+The system SHALL maintain a bidirectional mirror of the user's home directory between the local machine and the Always-On Peer (AOP). On the AOP, this data SHALL be stored in a dedicated directory separate from the user's home directory.
 
 #### Scenario: Update propagation
 - **WHEN** a file is modified locally and the AOP is reachable
@@ -24,3 +25,4 @@ The system SHALL strictly follow an ignore list to prevent syncing hardware-spec
 #### Scenario: Hardware config ignore
 - **WHEN** a change occurs in `.config/monitors.xml`
 - **THEN** the file is NOT synchronized to the AOP
+
