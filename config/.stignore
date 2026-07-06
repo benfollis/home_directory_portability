@@ -9,6 +9,9 @@ node_modules
 .git/index.lock
 
 // ZONE C: STRICT IGNORE (Machine-Specific)
+.config/syncthing
+.local/state/syncthing
+.local/share/syncthing
 .config/monitors.xml
 .config/pulse
 .config/dconf/user
