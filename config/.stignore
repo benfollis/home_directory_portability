@@ -12,6 +12,9 @@ node_modules
 .git/index.lock
 
 // ZONE C: STRICT IGNORE (Machine-Specific)
+(?i).steam
+(?i).local/share/steam
+(?i)steam
 .config/syncthing
 .local/state/syncthing
 .local/share/syncthing
