@@ -2,11 +2,15 @@
 Define the core requirements for the bidirectional synchronization of the user home directory between local machines and the Always-On Peer (AOP).
 ## Requirements
 ### Requirement: Bidirectional Synchronization
-The system SHALL maintain a bidirectional mirror of the user's home directory between the local machine and the Always-On Peer (AOP). On the AOP, this data SHALL be stored in a dedicated directory separate from the user's home directory.
+The system SHALL maintain a bidirectional mirror of the user's home directory between the local machine and the Always-On Peer (AOP). 
+
+On the AOP, the synced data SHALL be isolated per-user in a dedicated subdirectory (`/var/lib/home-sync/<username>`).
+
+To support concurrent multi-user execution on the same machine without port conflicts, Syncthing's GUI and Sync ports SHALL be calculated dynamically based on the user's UNIX User ID (`UID`) offset.
 
 #### Scenario: Update propagation
 - **WHEN** a file is modified locally and the AOP is reachable
-- **THEN** the change is pushed to the AOP and eventually to other peers
+- **THEN** the change is pushed to the user's isolated AOP storage directory and eventually to other peers
 
 ### Requirement: Network Reachability Check
 The system SHALL only attempt to synchronize when the AOP is reachable.
@@ -32,4 +36,11 @@ The system SHALL keep historical versions of files deleted or replaced on any no
 #### Scenario: File deletion or modification on a peer
 - **WHEN** a file is deleted or modified on a peer machine
 - **THEN** it is moved to the `.stversions` folder on the other nodes, kept as part of a staggered history for up to 7 days, and then permanently deleted
+
+### Requirement: Account and Credential Synchronization
+The system SHALL synchronize user accounts, group memberships, and password credentials across all nodes in the cluster.
+
+#### Scenario: Synced account database update
+- **WHEN** user account settings are updated on the AOP
+- **THEN** the changes are exported to a secure JSON file, synced to clients via Syncthing, and automatically applied to the local UNIX account database on client machines
 

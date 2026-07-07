@@ -1,0 +1,7 @@
+[Unit]
+Description=Import Home-Sync User Accounts for %i
+After=network.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/home-sync-import-accounts.py /home/%i/.config/home-sync/accounts.json

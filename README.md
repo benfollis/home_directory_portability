@@ -24,7 +24,9 @@ A robust, secure, and fully offline-capable system for synchronizing your Linux 
 │   ├── changes/                # Historic change proposals and specs
 │   └── specs/                  # Main project requirements and specifications
 ├── scripts/
+│   ├── export-accounts.py      # Exports user account database to JSON on AOP
 │   ├── home-sync-watcher.sh    # Watcher script monitoring AOP connectivity
+│   ├── import-accounts.py      # Imports user account database from JSON on client
 │   ├── install-base-packages.sh # Script to install non-sync base apps and SDKs
 │   ├── join-cluster.sh         # Client bootstrap script for system configuration
 │   └── setup-aop.sh            # Always-On Peer (AOP) installation & setup script

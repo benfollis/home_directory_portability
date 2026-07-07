@@ -4,8 +4,15 @@
 set -e
 
 # Configuration
-SYNC_DIR="${SYNC_DIR:-/var/lib/home-sync}"
-GUI_ADDRESS="${GUI_ADDRESS:-0.0.0.0:8384}"
+UID_OFFSET=$(($(id -u) - 1000))
+if [ "$UID_OFFSET" -lt 0 ]; then
+    UID_OFFSET=0
+fi
+GUI_PORT=$((8384 + UID_OFFSET))
+SYNC_PORT=$((22000 + UID_OFFSET))
+
+SYNC_DIR="${SYNC_DIR:-/var/lib/home-sync/$(whoami)}"
+GUI_ADDRESS="${GUI_ADDRESS:-0.0.0.0:${GUI_PORT}}"
 
 echo "Starting AOP Setup..."
 
@@ -31,6 +38,7 @@ import sys
 
 sync_dir = sys.argv[1]
 gui_address = sys.argv[2]
+sync_port = sys.argv[3]
 
 possible_paths = [
     os.path.expanduser('~/.config/syncthing/config.xml'),
@@ -72,6 +80,14 @@ else:
     options = ET.SubElement(root, 'options')
     dfp = ET.SubElement(options, 'defaultFolderPath')
     dfp.text = sync_dir
+
+# Set custom sync protocol port listen addresses
+for la in options.findall('listenAddress'):
+    options.remove(la)
+la_tcp = ET.SubElement(options, 'listenAddress')
+la_tcp.text = f'tcp://0.0.0.0:{sync_port}'
+la_quic = ET.SubElement(options, 'listenAddress')
+la_quic.text = f'quic://0.0.0.0:{sync_port}'
 
 for folder in root.findall('folder'):
     if folder.get('id') == 'default':
@@ -121,7 +137,7 @@ if gui is not None:
         address.text = gui_address
 
 tree.write(config_path)
-" "$SYNC_DIR" "$GUI_ADDRESS"
+" "$SYNC_DIR" "$GUI_ADDRESS" "$SYNC_PORT"
 
 # 4. Enable and Start Syncthing Systemd User Service
 # Ensure user manager is running by enabling linger
@@ -135,7 +151,18 @@ systemctl --user daemon-reload || true
 systemctl --user enable syncthing.service
 systemctl --user restart syncthing.service
 
-# 4. Get Device ID
+# 5. Setup Account Synchronization Services (Export)
+echo "Installing user account export services..."
+sudo cp ./scripts/export-accounts.py /usr/local/sbin/home-sync-export-accounts.py
+sudo chmod +x /usr/local/sbin/home-sync-export-accounts.py
+sudo cp ./systemd/system-services/home-sync-export-accounts.service /etc/systemd/system/
+sudo cp ./systemd/system-services/home-sync-export-accounts.timer /etc/systemd/system/
+
+sudo systemctl daemon-reload
+sudo systemctl enable --now home-sync-export-accounts.timer
+sudo systemctl start home-sync-export-accounts.service || true
+
+# 6. Get Device ID
 DEVICE_ID=$(syncthing --device-id)
 
 echo "----------------------------------------------------"

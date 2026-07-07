@@ -14,6 +14,10 @@ while [[ $# -gt 0 ]]; do
             AOP_IP="$2"
             shift 2
             ;;
+        --aop-port)
+            AOP_PORT="$2"
+            shift 2
+            ;;
         *)
             shift
             ;;
@@ -27,6 +31,20 @@ fi
 if [ -z "$AOP_IP" ]; then
     read -p "Enter AOP IP/Hostname [default: storage.lan]: " AOP_IP
     AOP_IP="${AOP_IP:-storage.lan}"
+fi
+
+# Calculate dynamic ports based on local UNIX UID offset
+UID_OFFSET=$(($(id -u) - 1000))
+if [ "$UID_OFFSET" -lt 0 ]; then
+    UID_OFFSET=0
+fi
+LOCAL_GUI_PORT=$((8384 + UID_OFFSET))
+LOCAL_SYNC_PORT=$((22000 + UID_OFFSET))
+DEFAULT_AOP_PORT=$((22000 + UID_OFFSET))
+
+if [ -z "$AOP_PORT" ]; then
+    read -p "Enter AOP Sync Port [default: $DEFAULT_AOP_PORT]: " AOP_PORT
+    AOP_PORT="${AOP_PORT:-$DEFAULT_AOP_PORT}"
 fi
 
 echo "Starting Home-Sync Client Bootstrap..."
@@ -63,6 +81,9 @@ import sys
 
 aop_id = sys.argv[1]
 aop_ip = sys.argv[2]
+aop_port = sys.argv[3]
+local_gui_port = sys.argv[4]
+local_sync_port = sys.argv[5]
 target_path = os.path.expanduser('~')
 
 possible_paths = [
@@ -82,6 +103,32 @@ if not config_path:
 
 tree = ET.parse(config_path)
 root = tree.getroot()
+
+# Update client's local options (listenAddress)
+options = root.find('options')
+if options is not None:
+    for la in options.findall('listenAddress'):
+        options.remove(la)
+    la_tcp = ET.SubElement(options, 'listenAddress')
+    la_tcp.text = f'tcp://0.0.0.0:{local_sync_port}'
+    la_quic = ET.SubElement(options, 'listenAddress')
+    la_quic.text = f'quic://0.0.0.0:{local_sync_port}'
+else:
+    options = ET.SubElement(root, 'options')
+    la_tcp = ET.SubElement(options, 'listenAddress')
+    la_tcp.text = f'tcp://0.0.0.0:{local_sync_port}'
+    la_quic = ET.SubElement(options, 'listenAddress')
+    la_quic.text = f'quic://0.0.0.0:{local_sync_port}'
+
+# Update client's local GUI port
+gui = root.find('gui')
+if gui is not None:
+    address = gui.find('address')
+    if address is not None:
+        address.text = f'127.0.0.1:{local_gui_port}'
+    else:
+        address = ET.SubElement(gui, 'address')
+        address.text = f'127.0.0.1:{local_gui_port}'
 
 # Update default folder path and add AOP device sharing
 for folder in root.findall('folder'):
@@ -137,10 +184,10 @@ for device in root.findall('device'):
         device_exists = True
         addr_el = device.find('address')
         if addr_el is not None:
-            addr_el.text = f'tcp://{aop_ip}:22000'
+            addr_el.text = f'tcp://{aop_ip}:{aop_port}'
         else:
             addr_el = ET.SubElement(device, 'address')
-            addr_el.text = f'tcp://{aop_ip}:22000'
+            addr_el.text = f'tcp://{aop_ip}:{aop_port}'
         break
 
 if not device_exists:
@@ -152,10 +199,10 @@ if not device_exists:
         'skipIntroductionOnError': 'false'
     })
     addr_el = ET.SubElement(dev_el, 'address')
-    addr_el.text = f'tcp://{aop_ip}:22000'
+    addr_el.text = f'tcp://{aop_ip}:{aop_port}'
 
 tree.write(config_path)
-" "$AOP_ID" "$AOP_IP"
+" "$AOP_ID" "$AOP_IP" "$AOP_PORT" "$LOCAL_GUI_PORT" "$LOCAL_SYNC_PORT"
 
 # Copy the stignore template to user's home directory
 cp ../config/.stignore ~/.stignore
@@ -179,6 +226,22 @@ systemctl --user enable home-sync-watcher.service
 
 systemctl --user start syncthing.service
 systemctl --user start home-sync-watcher.service
+
+# 8. Setup Account Synchronization Services (Import)
+echo "Installing user account import services..."
+sudo cp ./scripts/import-accounts.py /usr/local/sbin/home-sync-import-accounts.py
+sudo chmod +x /usr/local/sbin/home-sync-import-accounts.py
+sudo cp ./systemd/system-services/home-sync-import-accounts@.service /etc/systemd/system/
+sudo cp ./systemd/system-services/home-sync-import-accounts@.path /etc/systemd/system/
+
+sudo systemctl daemon-reload
+sudo systemctl enable --now "home-sync-import-accounts@$(whoami).path"
+
+# Run a first import if accounts.json has already synced
+if [ -f ~/.config/home-sync/accounts.json ]; then
+    echo "Running first-time user account import..."
+    sudo systemctl start "home-sync-import-accounts@$(whoami).service" || true
+fi
 
 CLIENT_ID=$(syncthing --device-id)
 
