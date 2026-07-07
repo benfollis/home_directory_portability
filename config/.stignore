@@ -4,6 +4,7 @@
 (?i)**/[Cc]aches
 .local/share/Trash
 .thumbnails
+(?i)Videos
 node_modules
 **/target
 **/build
