@@ -71,7 +71,50 @@ systemctl --user enable home-sync-watcher.service
 systemctl --user start home-sync-watcher.service
 
 # 6. Initial Syncthing Configuration
-echo "Initializing Syncthing..."
+echo "Initializing Syncthing config..."
+syncthing generate
+
+# Configure Syncthing's default folder to point to the user's home directory
+echo "Reconfiguring Syncthing default folder path..."
+python3 -c "
+import xml.etree.ElementTree as ET
+import os
+import sys
+
+possible_paths = [
+    os.path.expanduser('~/.config/syncthing/config.xml'),
+    os.path.expanduser('~/.local/state/syncthing/config.xml')
+]
+
+config_path = None
+for path in possible_paths:
+    if os.path.exists(path):
+        config_path = path
+        break
+
+if not config_path:
+    print(f'Config file not found in expected locations: {possible_paths}', file=sys.stderr)
+    sys.exit(1)
+
+tree = ET.parse(config_path)
+root = tree.getroot()
+
+target_path = os.path.expanduser('~')
+
+for folder in root.findall('folder'):
+    if folder.get('id') == 'default':
+        if 'path' in folder.attrib:
+            folder.set('path', target_path)
+        path_el = folder.find('path')
+        if path_el is not None:
+            path_el.text = target_path
+
+tree.write(config_path)
+"
+
+# Copy the stignore template to user's home directory
+cp ../config/.stignore ~/.stignore
+
 systemctl --user enable syncthing.service
 systemctl --user start syncthing.service
 
@@ -79,6 +122,5 @@ echo "----------------------------------------------------"
 echo "Bootstrap Complete!"
 echo "Next Steps:"
 echo "1. Configure your Wireguard tunnel at /etc/wireguard/wg0.conf"
-echo "2. Open http://localhost:8384 and add the AOP Device ID."
-echo "3. Copy config/.stignore to ~/.stignore"
+echo "2. Open the Syncthing GUI and add the AOP Device ID."
 echo "----------------------------------------------------"
