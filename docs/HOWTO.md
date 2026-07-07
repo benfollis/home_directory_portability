@@ -5,7 +5,7 @@ This guide explains how to set up the `home-sync` system across your Always-On P
 ## 1. Prerequisites
 - All machines must be running Debian.
 - Wireguard must be installed and configured on all machines.
-- The AOP must have a static internal IP (e.g., `10.0.0.1`) reachable via Wireguard.
+- The AOP must have a hostname (e.g., `storage.lan`) resolvable on the network/Wireguard.
 
 ## 2. Server Setup (Always-On Peer)
 1. Copy `scripts/setup-aop.sh` to your server.

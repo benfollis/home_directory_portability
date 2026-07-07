@@ -9,10 +9,10 @@ The system SHALL maintain a bidirectional mirror of the user's home directory be
 - **THEN** the change is pushed to the AOP and eventually to other peers
 
 ### Requirement: Network Reachability Check
-The system SHALL only attempt to synchronize when the Wireguard interface is active and the AOP's internal IP is pingable.
+The system SHALL only attempt to synchronize when the Wireguard interface is active and the AOP's hostname is pingable.
 
 #### Scenario: Sync on home network
-- **WHEN** the `wg0` interface is UP and the AOP (10.0.0.1) responds to pings
+- **WHEN** the `wg0` interface is UP and the AOP (storage.lan) responds to pings
 - **THEN** the synchronization daemon is started/resumed
 
 #### Scenario: Pause on public network

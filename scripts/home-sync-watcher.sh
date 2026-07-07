@@ -1,7 +1,7 @@
 #!/bin/bash
 # home-sync-watcher.sh - Connectivity monitor for Syncthing
 
-AOP_IP="${AOP_IP:-10.0.0.1}"
+AOP_IP="${AOP_IP:-storage.lan}"
 INTERFACE="${INTERFACE:-wg0}"
 
 check_connectivity() {
