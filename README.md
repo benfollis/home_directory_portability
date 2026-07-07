@@ -16,6 +16,7 @@ A robust, secure, and fully offline-capable system for synchronizing your Linux 
 ## 📂 Project Structure
 
 ```text
+├── MIGRATION.md                # Migration guide for upgrading from previous versions
 ├── config/
 │   └── .stignore               # Syncthing pattern ignore list template
 ├── docs/
