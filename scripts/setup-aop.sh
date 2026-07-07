@@ -82,6 +82,35 @@ for folder in root.findall('folder'):
         if path_el is not None:
             path_el.text = target_folder_path
 
+        # Configure file versioning (staggered with maxAge=604800 seconds / 7 days)
+        fv = folder.find('versioning')
+        if fv is None:
+            old_fv = folder.find('fileVersioning')
+            if old_fv is not None:
+                folder.remove(old_fv)
+            fv = ET.SubElement(folder, 'versioning')
+
+        fv.set('type', 'staggered')
+        cleanup_interval = fv.find('cleanupIntervalS')
+        if cleanup_interval is None:
+            cleanup_interval = ET.SubElement(fv, 'cleanupIntervalS')
+        cleanup_interval.text = '3600'
+
+        # Remove cleanoutDays if present from previous runs
+        for p in fv.findall('param'):
+            if p.get('key') == 'cleanoutDays':
+                fv.remove(p)
+
+        max_age_param = None
+        for p in fv.findall('param'):
+            if p.get('key') == 'maxAge':
+                max_age_param = p
+                break
+        if max_age_param is not None:
+            max_age_param.set('val', '604800')
+        else:
+            ET.SubElement(fv, 'param', {'key': 'maxAge', 'val': '604800'})
+
 gui = root.find('gui')
 if gui is not None:
     address = gui.find('address')
@@ -117,5 +146,4 @@ echo "----------------------------------------------------"
 echo "Next steps:"
 echo "1. Access the GUI at http://localhost:8384 (if local) or via SSH tunnel."
 echo "2. Set a GUI password for security."
-echo "3. Enable 'Simple File Versioning' in the Default Folder settings."
 echo "----------------------------------------------------"

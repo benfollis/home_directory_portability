@@ -26,3 +26,10 @@ The system SHALL strictly follow an ignore list to prevent syncing hardware-spec
 - **WHEN** a change occurs in `.config/monitors.xml`
 - **THEN** the file is NOT synchronized to the AOP
 
+### Requirement: Deleted & Modified File Protection (Staggered Versioning)
+The system SHALL keep historical versions of files deleted or replaced on any node using Staggered File Versioning, keeping snapshots for a maximum age of 7 days before purging them.
+
+#### Scenario: File deletion or modification on a peer
+- **WHEN** a file is deleted or modified on a peer machine
+- **THEN** it is moved to the `.stversions` folder on the other nodes, kept as part of a staggered history for up to 7 days, and then permanently deleted
+

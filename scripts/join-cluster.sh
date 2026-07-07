@@ -101,6 +101,35 @@ for folder in root.findall('folder'):
         if not device_exists:
             ET.SubElement(folder, 'device', {'id': aop_id})
 
+        # Configure file versioning (staggered with maxAge=604800 seconds / 7 days)
+        fv = folder.find('versioning')
+        if fv is None:
+            old_fv = folder.find('fileVersioning')
+            if old_fv is not None:
+                folder.remove(old_fv)
+            fv = ET.SubElement(folder, 'versioning')
+
+        fv.set('type', 'staggered')
+        cleanup_interval = fv.find('cleanupIntervalS')
+        if cleanup_interval is None:
+            cleanup_interval = ET.SubElement(fv, 'cleanupIntervalS')
+        cleanup_interval.text = '3600'
+
+        # Remove cleanoutDays if present from previous runs
+        for p in fv.findall('param'):
+            if p.get('key') == 'cleanoutDays':
+                fv.remove(p)
+
+        max_age_param = None
+        for p in fv.findall('param'):
+            if p.get('key') == 'maxAge':
+                max_age_param = p
+                break
+        if max_age_param is not None:
+            max_age_param.set('val', '604800')
+        else:
+            ET.SubElement(fv, 'param', {'key': 'maxAge', 'val': '604800'})
+
 # Add AOP device configuration under root if not exists
 device_exists = False
 for device in root.findall('device'):
