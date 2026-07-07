@@ -35,7 +35,7 @@ A robust, secure, and fully offline-capable system for synchronizing your Linux 
 
 ## 🚀 Getting Started
 
-For a comprehensive guide, please refer to the [Setup Guide](file:///home/kage/Documents/repos/home_directory_portability/docs/HOWTO.md). Here is the quick-start summary:
+For a comprehensive guide, please refer to the [Setup Guide](docs/HOWTO.md). Here is the quick-start summary:
 
 ### 1. Always-On Peer (Server) Setup
 Run the setup script on your central server/peer:
