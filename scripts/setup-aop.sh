@@ -5,7 +5,7 @@ set -e
 
 # Configuration
 SYNC_DIR="${SYNC_DIR:-/var/lib/home-sync}"
-GUI_ADDRESS="${GUI_ADDRESS:-127.0.0.1:8384}"
+GUI_ADDRESS="${GUI_ADDRESS:-0.0.0.0:8384}"
 
 echo "Starting AOP Setup..."
 
