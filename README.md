@@ -5,8 +5,8 @@ A robust, secure, and fully offline-capable system for synchronizing your Linux 
 ## 🌟 Key Features
 
 - **Bidirectional Mirroring**: Keeps your home directory in sync across all devices, maintaining full offline functionality and sub-second local access.
-- **VPN-Enforced Security**: Synchronization only runs when connected to the secure Wireguard VPN (`wg0`) and the central AOP server is reachable.
-- **Smart Connectivity Watcher**: A systemd user service monitors network connectivity and automatically starts/stops Syncthing to save resources and secure data.
+- **Connectivity-Based Sync**: Synchronization only runs when the central AOP server is reachable (e.g. over a Wireguard VPN or local network).
+- **Smart Connectivity Watcher**: A systemd user service monitors AOP reachability and automatically starts/stops Syncthing to save resources and secure data.
 - **Dedicated Server Storage**: The AOP stores synchronized data in an isolated, customizable directory (`/var/lib/home-sync` by default) to prevent configuration conflicts with the server's own home directory.
 - **Clean Bootstrapping**: Automated client onboarding backs up existing default configuration files (e.g., `.bashrc`, `.profile`) before the initial sync to prevent conflicts.
 - **Hardware Config Isolation**: Pre-configured ignore rules exclude hardware-specific files (e.g., monitor layouts) using a three-zone synchronization strategy.
@@ -24,7 +24,7 @@ A robust, secure, and fully offline-capable system for synchronizing your Linux 
 │   ├── changes/                # Historic change proposals and specs
 │   └── specs/                  # Main project requirements and specifications
 ├── scripts/
-│   ├── home-sync-watcher.sh    # Watcher script monitoring VPN & AOP connectivity
+│   ├── home-sync-watcher.sh    # Watcher script monitoring AOP connectivity
 │   ├── join-cluster.sh         # Client bootstrap script for system configuration
 │   └── setup-aop.sh            # Always-On Peer (AOP) installation & setup script
 └── systemd/
@@ -47,16 +47,14 @@ bash scripts/setup-aop.sh
 *Take note of the Syncthing Device ID printed at the end of the execution.*
 
 ### 2. Client Setup
-Configure your Wireguard interface (`/etc/wireguard/wg0.conf`), ensure the tunnel is active, and run the bootstrap script on the client machine:
+Configure your Wireguard interface or network connection, then run the bootstrap script on the client machine:
 ```bash
-bash scripts/join-cluster.sh
+AOP_ID="your-aop-device-id" AOP_IP="your-aop-ip" bash scripts/join-cluster.sh
 ```
+*(Alternatively, run `bash scripts/join-cluster.sh` to be prompted interactively.)*
 
 ### 3. Connect Devices
-1. Access the Syncthing Web UI at `http://localhost:8384` on your client.
-   - *Note*: If the GUI does not load, the `home-sync-watcher` service might have stopped Syncthing because the VPN tunnel is down or unreachable. Run `systemctl --user stop home-sync-watcher.service` followed by `systemctl --user start syncthing.service` to access the GUI for initial configuration.
-2. Add the Always-On Peer's Device ID.
-3. Accept the connection and folder sharing request on the AOP's Web UI.
+Add the client's printed Device ID to the Always-On Peer's Syncthing GUI to authorize the client. That's it!
 
 ---
 
@@ -79,12 +77,11 @@ systemctl --user start syncthing.service
 systemctl --user stop syncthing.service
 ```
 
-### LAN-Only Setup (No VPN)
-If you want to sync directly over your Local Area Network (LAN) instead of a Wireguard VPN:
+### Custom AOP IP Configuration
+If your Always-On Peer is at a different IP address or hostname than the default (`storage.lan`), or if you are syncing directly over your LAN:
 1. Create a config file at `~/.config/home-sync/watcher.env` on your client:
    ```env
-   AOP_IP=your-server-lan-ip
-   INTERFACE=none
+   AOP_IP=your-server-ip-or-hostname
    ```
 2. Reload and restart the watcher service:
    ```bash

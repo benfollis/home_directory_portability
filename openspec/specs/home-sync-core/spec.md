@@ -9,14 +9,14 @@ The system SHALL maintain a bidirectional mirror of the user's home directory be
 - **THEN** the change is pushed to the AOP and eventually to other peers
 
 ### Requirement: Network Reachability Check
-The system SHALL only attempt to synchronize when the Wireguard interface is active and the AOP's hostname is pingable.
+The system SHALL only attempt to synchronize when the AOP is reachable.
 
-#### Scenario: Sync on home network
-- **WHEN** the `wg0` interface is UP and the AOP (storage.lan) responds to pings
+#### Scenario: Sync when AOP reachable
+- **WHEN** the AOP (storage.lan) responds to pings
 - **THEN** the synchronization daemon is started/resumed
 
-#### Scenario: Pause on public network
-- **WHEN** the `wg0` interface is DOWN
+#### Scenario: Pause when AOP unreachable
+- **WHEN** the AOP (storage.lan) does not respond to pings
 - **THEN** the synchronization daemon is paused immediately
 
 ### Requirement: Data Segmentation (Three-Zone Strategy)

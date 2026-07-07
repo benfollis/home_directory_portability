@@ -22,35 +22,30 @@ This guide explains how to set up the `home-sync` system across your Always-On P
 
 ## 3. Client Setup (New Machine)
 1. Copy `scripts/join-cluster.sh` and the `config/.stignore` file to the new machine.
-2. Ensure your `wg0.conf` is in place at `/etc/wireguard/wg0.conf` and the tunnel is up.
-3. Run the join script: `bash join-cluster.sh`.
+2. Ensure your Wireguard tunnel is up or AOP is reachable.
+3. Run the join script by providing the AOP Device ID and IP address:
+   ```bash
+   AOP_ID="<AOP-DEVICE-ID>" AOP_IP="<AOP-IP>" bash join-cluster.sh
+   ```
+   *(Alternatively, you can run `bash join-cluster.sh` and you will be interactively prompted for these values.)*
 4. The script will:
    - Install core apps (Emacs, Flutter, etc.).
-   - Install Syncthing and the connectivity watcher.
+   - Install and configure Syncthing.
+   - Automatically configure and associate the default folder with the AOP.
+   - Set up and start the connectivity watcher (`home-sync-watcher.service`).
    - Backup your existing `.bashrc` and `.profile`.
-   - Start the sync services.
-5. **Manual Step**: Open the Syncthing GUI (`http://localhost:8384`) on the client and add the AOP Device ID.
-   - *Note*: If the GUI does not load, it is likely because the connectivity watcher stopped Syncthing because the Wireguard tunnel is not active yet or the AOP is unreachable. You can temporarily stop the watcher to open the GUI and configure Syncthing:
-     ```bash
-     systemctl --user stop home-sync-watcher.service
-     systemctl --user start syncthing.service
-     ```
-     After configuring and starting the Wireguard tunnel, restart the watcher:
-     ```bash
-     systemctl --user start home-sync-watcher.service
-     ```
-6. **Manual Step**: On the AOP GUI, accept the connection from the new client.
+   - Print the new client's Device ID.
+5. **Manual Step**: Add the printed client Device ID to your Always-On Peer (AOP) GUI to establish the trust relationship and begin syncing.
 
 ## 4. Maintenance
 - **Ignore List**: Edit `~/.stignore` to add machine-specific files you want to exclude.
 - **Troubleshooting**: Check service logs with `journalctl --user -u home-sync-watcher.service`.
 
-### LAN-Only Setup (No VPN)
-If you want to sync directly over your Local Area Network (LAN) instead of a Wireguard VPN:
+### Custom AOP IP Configuration
+If your Always-On Peer is at a different IP address or hostname than the default (`storage.lan`), or if you are syncing directly over your LAN:
 1. Create a config directory and file at `~/.config/home-sync/watcher.env` on the client:
    ```env
-   AOP_IP=your-server-lan-ip
-   INTERFACE=none
+   AOP_IP=your-server-ip-or-hostname
    ```
 2. Reload and restart the watcher service:
    ```bash
