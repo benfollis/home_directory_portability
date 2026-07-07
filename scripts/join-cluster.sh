@@ -31,49 +31,15 @@ fi
 
 echo "Starting Home-Sync Client Bootstrap..."
 
-# 1. System Updates and Core Apps (Apt)
-echo "Installing core applications..."
+# 1. System Updates and Sync Dependencies (Apt)
+echo "Installing sync dependencies..."
 sudo apt update
 sudo apt install -y \
     wireguard-tools \
     syncthing \
-    emacs \
-    thunderbird \
-    openjdk-17-jdk \
     curl \
     git \
     wget
-
-# 2. Specialty Software (.deb)
-echo "Installing Specialty Software..."
-
-# Antigravity (Google Editor)
-# Note: User provides the URL or we assume a standard location
-ANTIGRAVITY_URL="https://example.com/antigravity.deb" # Placeholder
-if ! command -v antigravity &> /dev/null; then
-    wget -O /tmp/antigravity.deb "$ANTIGRAVITY_URL"
-    sudo apt install -y /tmp/antigravity.deb
-fi
-
-# Waterfox
-# Note: Using flatpak or direct download if not in apt
-# For this script, we'll assume the user might need to add a repo or we use a placeholder download
-echo "Note: Waterfox installation method varies. Ensure repo is added or install manually."
-
-# 3. Development SDKs (Flutter/Dart/Node)
-echo "Setting up development SDKs..."
-
-# Node (via NVM)
-if [ ! -d "$HOME/.nvm" ]; then
-    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
-fi
-
-# Flutter/Dart (Downloaded to ~/opt)
-mkdir -p ~/opt
-if [ ! -d "$HOME/opt/flutter" ]; then
-    wget -O /tmp/flutter.tar.xz https://storage.googleapis.com/flutter_infra_release/releases/stable/linux/flutter_linux_3.19.0-stable.tar.xz
-    tar xf /tmp/flutter.tar.xz -C ~/opt/
-fi
 
 # 4. Home Cleaning (Conflict Prevention)
 echo "Cleaning up default home directory files..."

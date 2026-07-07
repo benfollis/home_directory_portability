@@ -25,6 +25,7 @@ A robust, secure, and fully offline-capable system for synchronizing your Linux 
 │   └── specs/                  # Main project requirements and specifications
 ├── scripts/
 │   ├── home-sync-watcher.sh    # Watcher script monitoring AOP connectivity
+│   ├── install-base-packages.sh # Script to install non-sync base apps and SDKs
 │   ├── join-cluster.sh         # Client bootstrap script for system configuration
 │   └── setup-aop.sh            # Always-On Peer (AOP) installation & setup script
 └── systemd/
@@ -55,6 +56,12 @@ AOP_ID="your-aop-device-id" AOP_IP="your-aop-ip" bash scripts/join-cluster.sh
 
 ### 3. Connect Devices
 Add the client's printed Device ID to the Always-On Peer's Syncthing GUI to authorize the client. That's it!
+
+### 4. Optional: Install Applications
+To install standard developer packages and utility applications (such as Emacs, Thunderbird, OpenJDK, Node.js, and Flutter), run:
+```bash
+bash scripts/install-base-packages.sh
+```
 
 ---
 

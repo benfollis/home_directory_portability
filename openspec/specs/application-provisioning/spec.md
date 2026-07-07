@@ -7,9 +7,16 @@ The system SHALL ensure a specific set of core applications is installed on the 
 - **WHEN** the bootstrap script runs
 - **THEN** it installs `emacs`, `thunderbird`, `openjdk-17-jdk`, `node`, `dart`, `flutter`, `android-sdk`, `waterfox`, and `antigravity`
 
-### Requirement: Multi-Source Installation Support
-The system SHALL handle different installation methods (apt, .deb, direct download).
+### Requirement: Extra Repository Configuration
+The system SHALL configure external repositories for packages not present in default Debian repositories (e.g., Waterfox).
 
-#### Scenario: Installing a deb package
-- **WHEN** the bootstrap script installs Antigravity
-- **THEN** it downloads the `.deb` package and uses `apt install ./package.deb` to install it
+#### Scenario: Registering package repositories
+- **WHEN** the installer script runs
+- **THEN** it registers the repositories and installs the software using `apt`
+
+### Requirement: Curl-Based CLI Installation
+The system SHALL support installing command line tools via official installation scripts (e.g., Antigravity CLI).
+
+#### Scenario: Installing Antigravity CLI
+- **WHEN** the installer script runs
+- **THEN** it downloads and executes the installer script using `curl`

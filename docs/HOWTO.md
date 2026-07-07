@@ -29,13 +29,19 @@ This guide explains how to set up the `home-sync` system across your Always-On P
    ```
    *(Alternatively, you can run `bash join-cluster.sh` and you will be interactively prompted for these values.)*
 4. The script will:
-   - Install core apps (Emacs, Flutter, etc.).
    - Install and configure Syncthing.
    - Automatically configure and associate the default folder with the AOP.
    - Set up and start the connectivity watcher (`home-sync-watcher.service`).
    - Backup your existing `.bashrc` and `.profile`.
    - Print the new client's Device ID.
 5. **Manual Step**: Add the printed client Device ID to your Always-On Peer (AOP) GUI to establish the trust relationship and begin syncing.
+
+### Optional: Install Developer & User Apps (Base Packages)
+To install the standard set of applications, SDKs, and editors (such as Emacs, Thunderbird, Java, Node.js, and Flutter):
+Run the installer script:
+```bash
+bash scripts/install-base-packages.sh
+```
 
 ## 4. Maintenance
 - **Ignore List**: Edit `~/.stignore` to add machine-specific files you want to exclude.
