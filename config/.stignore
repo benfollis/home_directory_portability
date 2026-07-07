@@ -1,5 +1,7 @@
 // ZONE B: TRANSIENT (Ignore)
 (?i).cache
+(?i)**/[Cc]ache
+(?i)**/[Cc]aches
 .local/share/Trash
 .thumbnails
 node_modules
