@@ -3,6 +3,11 @@
 
 set -e
 
+# Get the directory of the script and repository root
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_DIR="$(dirname "$SCRIPT_DIR")"
+
+
 # Configuration
 UID_OFFSET=$(($(id -u) - 1000))
 if [ "$UID_OFFSET" -lt 0 ]; then
@@ -153,10 +158,10 @@ systemctl --user restart syncthing.service
 
 # 5. Setup Account Synchronization Services (Export)
 echo "Installing user account export services..."
-sudo cp ./scripts/export-accounts.py /usr/local/sbin/home-sync-export-accounts.py
+sudo cp "$SCRIPT_DIR/export-accounts.py" /usr/local/sbin/home-sync-export-accounts.py
 sudo chmod +x /usr/local/sbin/home-sync-export-accounts.py
-sudo cp ./systemd/system-services/home-sync-export-accounts.service /etc/systemd/system/
-sudo cp ./systemd/system-services/home-sync-export-accounts.timer /etc/systemd/system/
+sudo cp "$REPO_DIR/systemd/system-services/home-sync-export-accounts.service" /etc/systemd/system/
+sudo cp "$REPO_DIR/systemd/system-services/home-sync-export-accounts.timer" /etc/systemd/system/
 
 sudo systemctl daemon-reload
 sudo systemctl enable --now home-sync-export-accounts.timer
@@ -168,7 +173,8 @@ DEVICE_ID=$(syncthing --device-id)
 echo "----------------------------------------------------"
 echo "AOP Setup Complete!"
 echo "Your Syncthing Device ID is: $DEVICE_ID"
-echo "Please save this ID to use on your client machines."
+echo "Your Syncthing Sync Port is: $SYNC_PORT"
+echo "Please save this ID and Sync Port to use on your client machines."
 echo "----------------------------------------------------"
 echo "Next steps:"
 echo "1. Access the GUI at http://localhost:8384 (if local) or via SSH tunnel."

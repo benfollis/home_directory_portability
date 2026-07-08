@@ -3,6 +3,11 @@
 
 set -e
 
+# Get the directory of the script and repository root
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_DIR="$(dirname "$SCRIPT_DIR")"
+
+
 # Parse arguments or prompt if not set
 while [[ $# -gt 0 ]]; do
     case $1 in
@@ -205,7 +210,7 @@ tree.write(config_path)
 " "$AOP_ID" "$AOP_IP" "$AOP_PORT" "$LOCAL_GUI_PORT" "$LOCAL_SYNC_PORT"
 
 # Copy the stignore template to user's home directory
-cp ../config/.stignore ~/.stignore
+cp "$REPO_DIR/config/.stignore" ~/.stignore
 
 # 6. Write Watcher Configuration
 echo "Writing watcher configuration..."
@@ -215,9 +220,9 @@ echo "AOP_IP=$AOP_IP" > ~/.config/home-sync/watcher.env
 # 7. Setup and Start Systemd Services
 echo "Installing systemd services..."
 mkdir -p ~/.config/systemd/user/
-cp ../systemd/home-sync-watcher.service ~/.config/systemd/user/
+cp "$REPO_DIR/systemd/home-sync-watcher.service" ~/.config/systemd/user/
 mkdir -p ~/scripts
-cp ./home-sync-watcher.sh ~/scripts/
+cp "$SCRIPT_DIR/home-sync-watcher.sh" ~/scripts/
 chmod +x ~/scripts/home-sync-watcher.sh
 
 systemctl --user daemon-reload
@@ -229,10 +234,10 @@ systemctl --user start home-sync-watcher.service
 
 # 8. Setup Account Synchronization Services (Import)
 echo "Installing user account import services..."
-sudo cp ./scripts/import-accounts.py /usr/local/sbin/home-sync-import-accounts.py
+sudo cp "$SCRIPT_DIR/import-accounts.py" /usr/local/sbin/home-sync-import-accounts.py
 sudo chmod +x /usr/local/sbin/home-sync-import-accounts.py
-sudo cp ./systemd/system-services/home-sync-import-accounts@.service /etc/systemd/system/
-sudo cp ./systemd/system-services/home-sync-import-accounts@.path /etc/systemd/system/
+sudo cp "$REPO_DIR/systemd/system-services/home-sync-import-accounts@.service" /etc/systemd/system/
+sudo cp "$REPO_DIR/systemd/system-services/home-sync-import-accounts@.path" /etc/systemd/system/
 
 sudo systemctl daemon-reload
 sudo systemctl enable --now "home-sync-import-accounts@$(whoami).path"
