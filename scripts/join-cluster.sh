@@ -209,8 +209,13 @@ if not device_exists:
 tree.write(config_path)
 " "$AOP_ID" "$AOP_IP" "$AOP_PORT" "$LOCAL_GUI_PORT" "$LOCAL_SYNC_PORT"
 
-# Copy the stignore template to user's home directory
-cp "$REPO_DIR/config/.stignore" ~/.stignore
+# Copy the stignore template and set up shared include configuration
+cp "$REPO_DIR/config/.stignore-shared" ~/.stignore-shared
+if [ ! -f ~/.stignore ]; then
+    echo "#include .stignore-shared" > ~/.stignore
+elif ! grep -q "#include .stignore-shared" ~/.stignore; then
+    echo -e "\n#include .stignore-shared" >> ~/.stignore
+fi
 
 # 6. Write Watcher Configuration
 echo "Writing watcher configuration..."

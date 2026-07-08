@@ -18,7 +18,7 @@ A robust, secure, and fully offline-capable system for synchronizing your Linux 
 ```text
 ├── MIGRATION.md                # Migration guide for upgrading from previous versions
 ├── config/
-│   └── .stignore               # Syncthing pattern ignore list template
+│   └── .stignore-shared        # Syncthing pattern ignore list template
 ├── docs/
 │   └── HOWTO.md                # Detailed step-by-step setup guide
 ├── openspec/
@@ -97,4 +97,25 @@ If your Always-On Peer is at a different IP address or hostname than the default
    ```bash
    systemctl --user daemon-reload
    systemctl --user restart home-sync-watcher.service
+   ```
+
+---
+
+## 🛡️ Syncing Ignore Patterns (Shared `.stignore-shared`)
+
+Syncthing does not synchronize `.stignore` files by default. To make it easy to push ignore pattern updates to all clients and the Always-On Peer (AOP), the system uses an `#include` mechanism.
+
+### How it works:
+1. The global ignore list is stored in a file named `.stignore-shared` in your home/sync directory. Because it is a normal file, Syncthing automatically synchronizes it across all devices.
+2. The local `.stignore` file on each device contains a directive to `#include .stignore-shared`.
+
+### Setting up a new device:
+The `join-cluster.sh` bootstrap script automatically configures this include on client machines.
+
+### Setting up on the AOP (Server):
+Since the AOP has a custom sync directory rather than the standard home folder, you must manually create the include directive once on the AOP:
+1. Ensure `.stignore-shared` has synchronized to your AOP data directory (typically `/var/lib/home-sync/<username>/Sync/`).
+2. Run the following command on the AOP to enable the shared ignore rules:
+   ```bash
+   echo "#include .stignore-shared" > /var/lib/home-sync/$(whoami)/Sync/.stignore
    ```
